@@ -58,14 +58,14 @@ def parse_translation_calls(response):
     return calls
 
 
-def translate_english_call_anthropic(thai_text):
+def translate_english_call_anthropic(thai_text, api_key):
     tools = []
     tool_name = "translate_tool"
     tool_description = translate_tool_description
     tool = construct_translation_tool_prompt(tool_name, tool_description)
     tools.append(tool)
 
-    client = anthropic.Anthropic()
+    client = anthropic.Anthropic(api_key = api_key)
     translate_message = {
         "role": "user",
         "content": "Translate the Thai text to English. Here is the text: " + thai_text
@@ -82,11 +82,11 @@ def translate_english_call_anthropic(thai_text):
     return calls
 
 
-def get_translate(thai_text):
+def get_translate(thai_text, api_key):
     num_attempt = 0
     while num_attempt < 3:
         try:
-            calls = translate_english_call_anthropic(thai_text)
+            calls = translate_english_call_anthropic(thai_text, api_key)
             return calls[0]['translation'], calls[0]['revision']
         except:
             num_attempt += 1
@@ -143,4 +143,17 @@ def get_translation_gpt(thai_text):
         call['revision'] = revision
         calls.append(call)
     return calls
+
+
+def process_file(file_name, api_key):
+    df = pd.read_csv(file_name)
+    df['llm_revision'] = df.apply(lambda x: "NA", axis=1)
+    df['llm_translate'] = df.apply(lambda x: "NA", axis=1)
+    for i in tqdm(range(len(df))):
+        text = df['Transcript'].iloc[i]
+        translated_text, revision = get_translate(text, api_key)
+        df.at[i, 'llm_translate'] = translated_text  
+        df.at[i, 'llm_revision'] = revision 
+    df.drop(columns=['English Translation'], inplace=True)
+    df.to_csv(file_name.replace(".csv", "_llm.csv"), index=False)
 
