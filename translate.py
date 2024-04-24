@@ -147,13 +147,14 @@ def get_translation_gpt(thai_text):
 
 def process_file(file_name, api_key):
     df = pd.read_csv(file_name)
-    df['llm_revision'] = df.apply(lambda x: "NA", axis=1)
-    df['llm_translate'] = df.apply(lambda x: "NA", axis=1)
+    df['thai_transcript'] = df.apply(lambda x: "NA", axis=1)
+    df['translation'] = df.apply(lambda x: "NA", axis=1)
     for i in tqdm(range(len(df))):
         text = df['Transcript'].iloc[i]
         translated_text, revision = get_translate(text, api_key)
-        df.at[i, 'llm_translate'] = translated_text  
-        df.at[i, 'llm_revision'] = revision 
+        df.at[i, 'translation'] = translated_text  
+        df.at[i, 'thai_transcript'] = revision 
     df.drop(columns=['English Translation'], inplace=True)
+    df.drop(columns=['Transcript'], inplace=True)
     df.to_csv(file_name.replace(".csv", "_llm.csv"), index=False)
 
