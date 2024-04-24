@@ -2,6 +2,7 @@
 import anthropic
 import pandas as pd
 from tqdm import tqdm
+from tool_use import parallel_tool_use, parse_tool_use
 
 
 
@@ -115,4 +116,31 @@ def construct_tool_prompt(tool_name, tool_description, properties):
     return system_prompt
 
 
+def get_translation_gpt(thai_text):
+
+    properties = get_translation_properties()
+    tool_name = "translate_tool"
+    tool_description = translate_tool_description
+    tool = construct_tool_prompt(tool_name, tool_description, properties)
+
+    
+    function_calls = parallel_tool_use(name = "translate_tool",
+                    instructions = "Revision of the original thai text to include proper grammar and space, revision only in thai. Also provide English translation on the revised thai text.",
+                    tools = [tool], 
+                    input_text = "Here is the thai text: \n" + thai_text,
+                    )
+
+    revise_calls = parse_tool_use(function_calls)
+
+    calls = []
+    for revise_call in revise_calls:
+        name, arguments = revise_call
+        translation = arguments['translation']
+        revision = arguments['revision']
+        call = {}
+        call['name'] = name
+        call['translation'] = translation
+        call['revision'] = revision
+        calls.append(call)
+    return calls
 
