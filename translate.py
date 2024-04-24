@@ -12,13 +12,13 @@ from tqdm import tqdm
 # Get Translation from Claude-3
 def get_translation_properties():
     properties = {}
-    properties["translation"] = {
-        "type": "string",
-        "description": "The translation of the Thai text to English. Provide only English translation."
-    }
     properties["revision"] = {
         "type": "string",
-        "description": "Revision of the original thai text to include proper grammar and space, no other changes and addition of text."
+        "description": "Revision of the original thai text to include proper grammar and space, no other changes and addition of text. Provide only Thai revision."
+    }
+    properties["translation"] = {
+        "type": "string",
+        "description": "The translation of the revised Thai text to English. Provide only English translation."
     }
     return properties
 
@@ -38,7 +38,7 @@ def construct_translation_tool_prompt(tool_name, tool_description):
     return system_prompt
 
 translate_tool_description = """
-Translate the Thai text to English. Provide only English translation.
+Translate the Thai text to English. Provide only English translation. Also Revise the original thai text to include proper grammar and space, no other changes and addition of text. Provide only Thai revision.
 [Example]
 สวัสดี --> Hello
 """
@@ -90,3 +90,29 @@ def get_translate(thai_text):
         except:
             num_attempt += 1
     return "NA"
+
+
+###############
+# GPT-4 Turbo #
+###############
+
+def contruct_params(properties):
+    parameters = {}
+    parameters["type"] = "object"
+    parameters["properties"] = properties
+    parameters["required"] = list(properties.keys())
+    return parameters
+
+def construct_tool_prompt(tool_name, tool_description, properties):
+    system_prompt = {
+        "type": "function",
+        "function": {
+            "name": tool_name,
+            "description": tool_description,
+            "parameters": contruct_params(properties)
+        }
+    }
+    return system_prompt
+
+
+
