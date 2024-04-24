@@ -16,7 +16,12 @@ def get_translation_properties():
         "type": "string",
         "description": "The translation of the Thai text to English. Provide only English translation."
     }
+    properties["revision"] = {
+        "type": "string",
+        "description": "Revision of the original thai text to include proper grammar and space, no other changes and addition of text."
+    }
     return properties
+
 
 def construct_translation_tool_prompt(tool_name, tool_description):
     properties = get_translation_properties()
@@ -43,9 +48,11 @@ def parse_translation_calls(response):
     for content in response.content:
         if content.type=='tool_use' and content.name.startswith('translate_tool'):
             translation = content.input['translation']
+            revision = content.input['revision']
             call = {}
             call['name'] = content.name
             call['translation'] = translation
+            call['revision'] = revision
             calls.append(call)
     return calls
 
@@ -63,9 +70,9 @@ def translate_english_call_anthropic(thai_text):
         "content": "Translate the Thai text to English. Here is the text: " + thai_text
     }
     response = client.beta.tools.messages.create(
-        # model="claude-3-opus-20240229",
+        model="claude-3-opus-20240229",
         # model = "claude-3-haiku-20240229", # "claude-3-opus-20240229
-        model = "claude-3-sonnet-20240229", # "claude-3-opus-20240229
+        # model = "claude-3-sonnet-20240229", # "claude-3-opus-20240229
         max_tokens=1024,
         tools=tools,
         messages=[translate_message],
@@ -79,7 +86,7 @@ def get_translate(thai_text):
     while num_attempt < 3:
         try:
             calls = translate_english_call_anthropic(thai_text)
-            return calls[0]['translation']
+            return calls[0]['translation'], calls[0]['revision']
         except:
             num_attempt += 1
     return "NA"
