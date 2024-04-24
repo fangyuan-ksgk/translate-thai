@@ -1,6 +1,8 @@
 # from .function_call import *
 import anthropic
 import pandas as pd
+from tqdm import tqdm
+
 
 
 ############
@@ -61,7 +63,9 @@ def translate_english_call_anthropic(thai_text):
         "content": "Translate the Thai text to English. Here is the text: " + thai_text
     }
     response = client.beta.tools.messages.create(
-        model="claude-3-opus-20240229",
+        # model="claude-3-opus-20240229",
+        # model = "claude-3-haiku-20240229", # "claude-3-opus-20240229
+        model = "claude-3-sonnet-20240229", # "claude-3-opus-20240229
         max_tokens=1024,
         tools=tools,
         messages=[translate_message],
