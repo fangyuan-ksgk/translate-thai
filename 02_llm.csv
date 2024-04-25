@@ -1,6 +1,6 @@
-Start time,End time,Transcript,English Translation
-26.800,30.800,สวัสดีค่ะคุณนฤมล,Hello Mr. Narumon
-31.400,39.600,เสื้อตาขออนุญาตเวลาไม่เกิน 2 นาทีค่ะพอดีว่ามาสอบถามข้อมูลเพิ่มเติมให้นิดนึงค่ะอันนี้คุยสายได้อยู่นะคะ,I would like to ask permission for no more than 2 minutes. I just wanted to ask for a little more information. You can talk on the phone right now.
+Start time,End time,thai_transcript,translation
+26.800,30.800,สวัสดีค่ะคุณนฤมล,Do you have any medical histories Mr Bob? 
+31.400,39.600,เสื้อตาขออนุญาตเวลาไม่เกิน 2 นาทีค่ะพอดีว่ามาสอบถามข้อมูลเพิ่มเติมให้นิดนึงค่ะอันนี้คุยสายได้อยู่นะคะ,I have diabetes for 3 years now. 
 40.400,49.800,ค่ะขออนุญาตสอบถามรายละเอียดเกี่ยวกับไทรอยด์ค่ะคุณลูกค้าตัวนี้คุณลูกค้าอ่ามีการรับประทานยาวันละกี่เม็ดคะตัวนี้วันละ 3 เม็ดเนาะ,"Yes, please allow me to ask for details about the thyroid, this customer. How many pills do you take per day? This one is 3 pills per day."
 50.700,55.500,ของค่ะอันนี้พบแพทย์อันนี้เป็นกี่เดือนครั้งคะหรือว่าทุกเดือน,"This one, how many times a month do you see this doctor? Or is it every month?"
 56.600,60.600,ต่อเดือน,per month
