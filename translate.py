@@ -226,7 +226,7 @@ def process_file(file_name, api_key):
         translated_text, revision = get_translate(text, api_key)
         df.at[i, 'translation'] = translated_text  
         df.at[i, 'thai_transcript'] = revision 
-    df.drop(columns=['English Translation'], inplace=True)
+    #df.drop(columns=['English Translation'], inplace=True)
     df.drop(columns=['Transcript'], inplace=True)
     df.to_csv(file_name.replace(".csv", "_llm.csv"), index=False)
 
