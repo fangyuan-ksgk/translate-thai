@@ -24,6 +24,24 @@ def get_translation_properties():
     return properties
 
 
+def get_qa_properties(questions):
+    properties = {}
+    for i, question in enumerate(questions):
+        properties["question_" + str(i) + "_present"] = {
+            "type": "boolean",
+            "description": "Whether the question of type " + str(i) + " is present in the text. Question Type Description: " + question
+        }
+        properties["question_" + str(i)] = {
+            "type": "string",
+            "description": "The question of type " + str(i) + " in the text"
+        }
+        properties["answer_" + str(i)] = {
+            "type": "string",
+            "description": "Answer to question " + str(i) 
+        }
+    return properties
+
+
 def construct_translation_tool_prompt(tool_name, tool_description):
     properties = get_translation_properties()
     argument_names = list(properties.keys())
@@ -37,6 +55,26 @@ def construct_translation_tool_prompt(tool_name, tool_description):
         },
     }
     return system_prompt
+
+
+def construct_qa_tool_prompt(tool_name, tool_description, questions):
+    properties = get_qa_properties(questions)
+    argument_names = list(properties.keys())
+    system_prompt = {
+        "name": tool_name,
+        "description": tool_description,
+        "input_schema": {
+            "type": "object",
+            "properties": properties,
+            "required": argument_names,
+        },
+    }
+    return system_prompt
+
+
+qa_tool_description = """ 
+Parse out the questions and answers according to the specific genre and description. Decide whether the question of that specific genre is present, if it is, provide the specific question and the answer to that. 
+"""
 
 translate_tool_description = """
 Translate the Thai text to English. Provide only English translation. Also Revise the original thai text to include proper grammar and space, no other changes and addition of text. Provide only Thai revision.
@@ -57,6 +95,40 @@ def parse_translation_calls(response):
             calls.append(call)
     return calls
 
+def parse_qa_calls(response, n_types=5):
+    calls = []
+    for content in response.content:
+        if content.type=='tool_use' and content.name.startswith('qa_tool'):
+            call = {}
+            call['name'] = content.name
+            for i in range(n_types):
+                if content.input["question_" + str(i) + "_present"]:
+                    call['question_' + str(i)] = content.input['question_' + str(i)]
+                    call['answer_' + str(i)] = content.input['answer_' + str(i)]
+            calls.append(call)
+    return calls
+
+def parse_qa_anthropic(thai_text, questions, api_key):
+    tools = []
+    tool_name = "qa_tool"
+    tool_description = qa_tool_description
+    # questions = ["What is the name of the person?", "What is the name of the place?", "What is the name of the thing?", "What is the name of the action?", "What is the name of the time?"]
+    tool = construct_qa_tool_prompt(tool_name, tool_description, questions)
+    tools.append(tool)
+
+    client = anthropic.Anthropic(api_key = api_key)
+    qa_message = {
+        "role": "user",
+        "content": "Parse out the questions and answers according to the specific genre and description. Here is the text: " + thai_text
+    }
+    response = client.beta.tools.messages.create(
+        model="claude-3-opus-20240229",
+        max_tokens=512,
+        tools=tools,
+        messages=[qa_message],
+    )
+    calls = parse_qa_calls(response)
+    return calls
 
 def translate_english_call_anthropic(thai_text, api_key):
     tools = []
