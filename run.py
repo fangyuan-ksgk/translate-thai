@@ -1,4 +1,4 @@
-from translate import *
+from src.translate import *
 # process_file("")
 import glob
 import os
