@@ -29,15 +29,15 @@ def get_qa_properties(questions):
     for i, question in enumerate(questions):
         properties["question_" + str(i) + "_present"] = {
             "type": "boolean",
-            "description": "Whether the question of type " + str(i) + " is present in the text. Question Type Description: " + question
+            "description": f"Whether the question similar to {question} (Question indexed {i}) is present in the text."
         }
         properties["question_" + str(i)] = {
             "type": "string",
-            "description": "The question of type " + str(i) + " in the text"
+            "description": f"The exact question in the transcript which is similar to {question} (Question indexed {i}) in the text"
         }
         properties["answer_" + str(i)] = {
             "type": "string",
-            "description": "Answer to question " + str(i) 
+            "description": f"The exact answer in the transcript to the question similar to {question} (Question indexed {i}) in the text"
         }
     return properties
 
@@ -73,7 +73,7 @@ def construct_qa_tool_prompt(tool_name, tool_description, questions):
 
 
 qa_tool_description = """ 
-Parse out the questions and answers according to the specific genre and description. Decide whether the question of that specific genre is present, if it is, provide the specific question and the answer to that. 
+Parse out the questions and answers according, where the question is similar to the provided ones. Decide whether the question and answer of that specific type of question is present, if it is, provide the specific question and the answer to that. 
 """
 
 translate_tool_description = """
@@ -95,7 +95,7 @@ def parse_translation_calls(response):
             calls.append(call)
     return calls
 
-def parse_qa_calls(response, n_types=5):
+def parse_qa_calls(response, n_types=6):
     calls = []
     for content in response.content:
         if content.type=='tool_use' and content.name.startswith('qa_tool'):
@@ -127,7 +127,7 @@ def parse_qa_anthropic(thai_text, questions, api_key):
         tools=tools,
         messages=[qa_message],
     )
-    calls = parse_qa_calls(response)
+    calls = parse_qa_calls(response, n_types = len(questions))
     return calls
 
 def translate_english_call_anthropic(thai_text, api_key):
@@ -229,4 +229,25 @@ def process_file(file_name, api_key):
     df.drop(columns=['English Translation'], inplace=True)
     df.drop(columns=['Transcript'], inplace=True)
     df.to_csv(file_name.replace(".csv", "_llm.csv"), index=False)
+
+
+
+qa_questions = ["""Have you ever been denied insurance, had your insurance premiums increased due to sub standard case, or had changes made to the terms and conditions of your insurance application, reinstatement, or policy renewal by this or any other company?
+""",
+"""Have you ever used or been addicted to drugs, narcotics, or controlled substances, or been involved in drug trafficking or drug-related offenses?
+""",
+"""Have you ever been diagnosed with or treated for, or been observed by a physician to have AIDS, immunodeficiency, cancer, heart disease, vascular disease, diabetes, hypertension, cerebrovascular disease, lung disease, tuberculosis, asthma, blood disease ,liver disease, kidney disease, SLE, physical disabilities, or not?
+""",
+""" In the past 5 years, have you undergone diagnostic tests for diseases such as X-rays, electrocardiograms, blood tests, or specialized examinations, or have you been recommended by your current physician or alternative medicine physician for any treatment?
+""",
+"""Have you ever had or currently have symptoms such as muscle weakness, severe chronic headaches, coughing up blood, chest pain, chronic abdominal pain, vomiting or bloody stools, chronic diarrhea, chronic joint pain, palpable masses, or in the past 6 months experienced unexplained fatigue or weight loss?
+""",
+"""Have you ever been denied insurance, had your insurance premiums increased due to sub standard case, or had changes made to your insurance policy, terms, or conditions by any insurance company, including this one?
+""",
+"""Have you used or been addicted to drugs, narcotics, or controlled substances, or been involved in drug trafficking, or been convicted of drug-related offenses?
+""",
+"""Have you ever been diagnosed, treated, or observed by a physician for diseases such as AIDS (HIV), cancer, heart disease, vascular disease, diabetes, hypertension, cerebrovascular disease, lung disease, tuberculosis, asthma, blood disease ,liver disease, kidney disease, SLE, physical disabilities, or others?
+""",
+"""In the past 3 years, have you undergone diagnostic tests such as X-rays, electrocardiograms, blood tests, or specialized examinations, or have you received treatment or consulted with current medical or alternative medicine practitioners? If yes, please provide details.
+"""]
 
